@@ -218,7 +218,7 @@ def readTest():
     baseDir = 'yfcc100m_dataset-3/'
     
     #getGeoDataFromDataset(baseDir + 'flick-3')
-    #getAbortChinaFromGeoData(baseDir + 'flick-3-geo')
+    #getAbortChinaFromGeoData(baseDir + 'flick-3-geo') 
     
     count = input("input: ")
     getChinaFromDatasetByGeopy(baseDir + 'flick-3-geo-abortchina',\

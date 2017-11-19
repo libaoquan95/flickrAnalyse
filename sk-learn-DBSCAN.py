@@ -107,18 +107,23 @@ def my_dbscan(culsterData, my_eps=0.001, my_min_samples=8):
 # 画图
 # param Data:数据, w:图片宽度, h:图片高度, solit:散点大小, picTltle:图片名
 # return plt,fig
-def drawScatter(Data, w=5, h=5, solit=10, picTltle='title'):             
+def drawScatter(Data, culsterResult, w=5, h=5, solit=10, picTltle='title'):             
     fig = plt.gcf()
     fig.set_size_inches(w,  h)
     
     plt.scatter(Data['lon'], Data['lat'], c=Data['clusterId'], s=solit)
-    plt.title(picTltle)
+    plt.title('%s\nSum %d, Culster %d, Noisy %d, have %d culsters' \
+          % (picTltle, culsterResult['DataCount'], \
+             culsterResult['DataCount'] - culsterResult['NoisyCount'],\
+             culsterResult['NoisyCount'], culsterResult['CulsterCount']))
     return plt, fig
 
+
+
 def main():
-    baseDir = 'yfcc100m_dataset-0/'
-    geoFile = baseDir + 'flick-0-geo-abortchina-china'
-    addressFile = baseDir + 'flick-0-geo-abortchina-china-address'
+    baseDir = 'yfcc100m_dataset/'
+    geoFile = baseDir + 'flick-geo-abortchina-china'
+    addressFile = baseDir + 'flick-geo-abortchina-china-address'
     
     provinces = ['辽宁省', '陕西省', '浙江省', '重庆市', '黑龙江省',         \
                  '安徽省', '山西省', '山东省', '上海市', '新疆维吾尔自治区', \
@@ -136,19 +141,23 @@ def main():
                     'Guang Dong','He Bei',  'Hai Nan',   'Macro',      'Xi Zhang',       \
                     'Gui Zhou',  'Jiang Su','Qin Hai',   'Hong Kong']
     
-    provincesIndex = 23
+    provincesIndex = 13
     proGeo = selectData(geoFile, addressFile, province=provinces[provincesIndex])
     
-    culsters, culsterResult = my_dbscan(proGeo, 0.01, 8)
+    culsters, culsterResult = my_dbscan(proGeo, 0.001, 8)
     
     print('总数据 %d 条, 有效聚类 %d 条, 噪音点 %d 条, 有 %d 个类' \
           % (culsterResult['DataCount'], culsterResult['DataCount'] - culsterResult['NoisyCount'],\
             culsterResult['NoisyCount'], culsterResult['CulsterCount']))
     
-    plt, fig = drawScatter(culsters, 5, 5, 10, provinces_py[provincesIndex])
-    plt.show()
+    plt, fig = drawScatter(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+    #plt.show()
     
-    #fig.savefig('yfcc100m_dataset-0/' + province + '.png',  dpi=100)
+    # 将聚类结果写入到文件中
+    culsters.to_csv(baseDir + 'culsters/' + provinces[provincesIndex] + '.csv', encoding='utf-8', index=True)
+    
+    # 将聚类结果写入到图片中
+    fig.savefig(baseDir + 'culsters/' + provinces[provincesIndex] + '.png',  dpi=100)
     #test_dbscan()
     
 main()

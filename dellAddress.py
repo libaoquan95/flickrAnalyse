@@ -65,12 +65,12 @@ def splitByProvince(fliename):
     outFile.close()
 
 def readTest():
-    baseDir = 'yfcc100m_dataset-0/'
-    geoFile = baseDir + 'flick-0-geo-abortchina-china'
-    addressFile = baseDir + 'flick-0-geo-abortchina-china-address'
-    
-    #reserveAddress(addressFile)
-    #splitByProvince(addressFile)
+    baseDir = 'yfcc100m_dataset-3/'
+    geoFile = baseDir + 'flick-3-geo-abortchina-china'
+    addressFile = baseDir + 'flick-3-geo-abortchina-china-address'
+    ##
+    reserveAddress(addressFile)
+    splitByProvince(addressFile)
 
 
 readTest()

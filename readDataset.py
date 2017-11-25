@@ -215,13 +215,13 @@ def getChinaFromDatasetByGeopy(filename, lonIndex, latIndex, n=10):
     
     
 def readTest():
-    baseDir = 'yfcc100m_dataset-3/'
+    baseDir = 'yfcc100m_dataset-6/'
     
-    #getGeoDataFromDataset(baseDir + 'flick-3')
-    #getAbortChinaFromGeoData(baseDir + 'flick-3-geo') 
+    #getGeoDataFromDataset(baseDir + 'flick-6')
+    #getAbortChinaFromGeoData(baseDir + 'flick-6-geo') 
     
     count = input("input: ")
-    getChinaFromDatasetByGeopy(baseDir + 'flick-3-geo-abortchina',\
+    getChinaFromDatasetByGeopy(baseDir + 'flick-6-geo-abortchina',\
                                10, 11, int(count))
 
 

@@ -7,7 +7,6 @@ from mpl_toolkits.basemap import Basemap
 from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Polygon
 
-
 # 画出中国地图，并将数据集中的经纬点在图中标记
 # @param filename:数据集，lonIndex:经度下标，latIndex:维度下标
 def drawMap(filename,  lonIndex,  latIndex):

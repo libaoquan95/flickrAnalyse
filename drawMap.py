@@ -63,10 +63,10 @@ def drawMap(filename,  lonIndex,  latIndex):
     
     plt.title("flick point in China")
     
-    fig.savefig('yfcc100m_dataset-0/China.png',  dpi=100)
+    fig.savefig('yfcc100m_dataset/China.png',  dpi=100)
     #plt.show()
     
     inFile.close()
     
     
-drawMap('yfcc100m_dataset-0/flick-0-geo-abortchina-china', 10, 11)
+drawMap('yfcc100m_dataset/flick-geo-abortchina-china', 10, 11)

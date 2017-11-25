@@ -102,7 +102,8 @@ def my_dbscan(culsterData, my_eps=0.001, my_min_samples=8):
 
     # 剔除噪音点, 即clusterId=-1的点
     #print(culsterData[culsterData.clusterId != -1])
-    return culsterData[culsterData.clusterId != -1],culsterResult
+    #print(culsterData)
+    return culsterData, culsterResult
     
 # 画图
 # param Data:数据, w:图片宽度, h:图片高度, solit:散点大小, picTltle:图片名
@@ -133,31 +134,31 @@ def main():
                  '广东省', '河北省', '海南省', '澳門',   '西藏自治区',       \
                  '贵州省', '江苏省', '青海省', 'HK']
     
-    provinces_py = ['Liao Ning', 'Shan Xi', 'Zhe Jiang', 'Chong Qing', 'Hei Long Jiang',         \
-                    'An Hui',    'San Xi',  'San Dong',  'Shang Hai',  'Xing Jiang', \
-                    'Hu Nan',    'Gan Su',  'He Nan',    'Bei Jing',   'Nei Mong Gu',     \
-                    'Yun Nam',   'Jiang Xi','Hu Bei',    'Jin Lin',    'Ning Xia',   \
-                    'Tian Jin',  'Fu Jian', 'Si Chuan',  'Tai Wan',    'Guang Xi',   \
-                    'Guang Dong','He Bei',  'Hai Nan',   'Macro',      'Xi Zhang',       \
-                    'Gui Zhou',  'Jiang Su','Qin Hai',   'Hong Kong']
+    provinces_py = ['LN',  'ShanX', 'ZJ',  'CQ',    'HLJ', \
+                    'AH',  'SanX',  'SD',  'SH',    'XJ',  \
+                    'HuN', 'GS',    'HeN', 'BJ',    'NMG', \
+                    'YN',  'JX',    'HuB', 'JL',    'NX',  \
+                    'TJ',  'FJ',    'SC',  'TW',    'GX',  \
+                    'GD',  'HeB',   'HaiN','Macro', 'XZ',  \
+                    'GZ',  'JS',    'QH',  'HK']
     
-    provincesIndex = 13
-    proGeo = selectData(geoFile, addressFile, province=provinces[provincesIndex])
-    
-    culsters, culsterResult = my_dbscan(proGeo, 0.001, 8)
-    
-    print('总数据 %d 条, 有效聚类 %d 条, 噪音点 %d 条, 有 %d 个类' \
-          % (culsterResult['DataCount'], culsterResult['DataCount'] - culsterResult['NoisyCount'],\
-            culsterResult['NoisyCount'], culsterResult['CulsterCount']))
-    
-    plt, fig = drawScatter(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
-    #plt.show()
-    
-    # 将聚类结果写入到文件中
-    culsters.to_csv(baseDir + 'culsters/' + provinces[provincesIndex] + '.csv', encoding='utf-8', index=True)
-    
-    # 将聚类结果写入到图片中
-    fig.savefig(baseDir + 'culsters/' + provinces[provincesIndex] + '.png',  dpi=100)
-    #test_dbscan()
+    for provincesIndex in range(len(provinces)):
+        proGeo = selectData(geoFile, addressFile, province=provinces[provincesIndex])
+        
+        culsters, culsterResult = my_dbscan(proGeo, 0.001, 8)
+        
+        print('总数据 %d 条, 有效聚类 %d 条, 噪音点 %d 条, 有 %d 个类' \
+              % (culsterResult['DataCount'], culsterResult['DataCount'] - culsterResult['NoisyCount'],\
+                culsterResult['NoisyCount'], culsterResult['CulsterCount']))
+        
+        plt, fig = drawScatter(culsters[culsters.clusterId != -1], culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+        #plt.show()
+        
+        # 将聚类结果写入到文件中
+        culsters.to_csv(baseDir + 'culsters/' + provinces_py[provincesIndex] + '.csv', encoding='utf-8', index=True)
+        
+        # 将聚类结果写入到图片中
+        fig.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '.png',  dpi=100)
+        #test_dbscan()
     
 main()

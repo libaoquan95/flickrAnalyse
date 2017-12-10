@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn.cluster import DBSCAN
@@ -7,79 +8,23 @@ from sklearn.cluster import DBSCAN
 from pandas import Series, DataFrame
 from mpl_toolkits.basemap import Basemap
 from matplotlib.patches import Polygon
+from geopy.distance import vincenty
+from geopy.distance import great_circle
 
-'''
-def test_dbscan():
-    X1, y1=datasets.make_circles(n_samples=5000, factor=.6,noise=.05)
-    X2, y2 = datasets.make_blobs(n_samples=1000, n_features=2, \
-                                 centers=[[1.2,1.2]], cluster_std=[[.1]],\
-                                 random_state=9)
-    
-    X = np.concatenate((X1, X2))
-    plt.scatter(X[:, 0], X[:, 1], marker='o')
-    plt.show()
-    
-    print(X1)
-    
-    y_pred = DBSCAN(eps = 0.1, min_samples = 10).fit_predict(X)
-    #y_pred = myDBSCAN.DBSCAN(eps = 0.1, minPts = 10).fit_predict(X)
-    
-    plt.scatter(X[:, 0], X[:, 1], c=y_pred)
-    plt.show()
-    
-    print(X)
- '''   
-    
-    
-# 按省份信息筛选数据，联立省份和Geo信息
-# param geoFile:geo信息文件, addressFile:地址信息文件, province:省份名称 
-# return 某一省份的Geo信息，以id为索引，只包含经纬度值
-def selectData(geoFile, addressFile, province):
-    #读取数据集，获取经纬度信息
-    inFile = open(geoFile, encoding='utf-8')
-    datas = []
-    for line in inFile:
-        meteData = line.strip().split('\t')
-        datas.append([meteData[0], meteData[10], meteData[11]])
-    inFile.close()
-    
-    # 将经纬度数据存入DataFrame类型geoFrame
-    geoDatas = np.array(datas)
-    data = {'lon': geoDatas[:, 1], 'lat': geoDatas[:, 2]}
-    geoFrame = DataFrame(data, columns=['lon', 'lat'],index = geoDatas[:, 0])
-    #print(geoFrame)
-    
-    #读取数据集，获取地址信息
-    inFile = open(addressFile, encoding='utf-8')
-    datas = []
-    for line in inFile:
-        meteData = line.strip().split('\t')
-        datas.append(meteData)
-    inFile.close()
-    
-    # 将地址数据存入DataFrame类型addressFrame
-    addressDatas = np.array(datas)
-    data = {'province': addressDatas[:, 1], 'address': addressDatas[:, 2]}
-    addressFrame = DataFrame(data, columns=['province', 'address'],index = addressDatas[:, 0])
-    #print(addressFrame)
-    
-    # 获取某一省份的照片id集
-    dataIds = addressFrame[addressFrame['province'] == province].index
-    #print(geoFrame['lon','lat'].loc[dataIds])
-    
-    # 根据照片id集获取经纬度
-    proGeo = geoFrame.loc[dataIds, ['lon', 'lat']]
-    #print(proGeo)
-    return proGeo
-    
     
 # 聚类
 # param 待聚类数据
 # return 聚类结果,聚类统计
-def my_dbscan(culsterData, my_eps=0.001, my_min_samples=8):
+def my_dbscan(dataSets, provinceName, my_eps=0.001, my_min_samples=8):
     #y_pred = DBSCAN(eps = 0.5, min_samples = 10).fit_predict(proGeo)
     #DBSCANs = myDBSCAN.DBSCAN(eps=1, minPts=1)
     #y_pred, count = DBSCANs.fit_predict(proGeo)
+    
+    # 获取某一省份的照片id集
+    dataIds = dataSets[dataSets['PROVINCE'] == provinceName].index
+    # 根据照片id集获取经纬度
+    culsterData = dataSets.loc[dataIds, ['Longitude', 'Latitude']]
+    
     y_pred = DBSCAN(eps = my_eps, min_samples = my_min_samples).fit_predict(culsterData)
     culsterData['clusterId'] = y_pred
     
@@ -105,26 +50,74 @@ def my_dbscan(culsterData, my_eps=0.001, my_min_samples=8):
     #print(culsterData)
     return culsterData, culsterResult
     
-# 画图
+# 画散点图
 # param Data:数据, w:图片宽度, h:图片高度, solit:散点大小, picTltle:图片名
 # return plt,fig
-def drawScatter(Data, culsterResult, w=5, h=5, solit=10, picTltle='title'):             
+def drawScatter(Data, culsterResult, w=5, h=5, solit=10, picTltle='title'):
+    plt.figure()             
     fig = plt.gcf()
     fig.set_size_inches(w,  h)
     
-    plt.scatter(Data['lon'], Data['lat'], c=Data['clusterId'], s=solit)
+    plt.scatter(Data['Longitude'], Data['Latitude'], c=Data['clusterId'], s=solit)
     plt.title('%s\nSum %d, Culster %d, Noisy %d, have %d culsters' \
           % (picTltle, culsterResult['DataCount'], \
              culsterResult['DataCount'] - culsterResult['NoisyCount'],\
              culsterResult['NoisyCount'], culsterResult['CulsterCount']))
+    
+    plt.show()
+    plt.close(0)
     return plt, fig
 
+# 画条形图
+# param Data:数据, w:图片宽度, h:图片高度, solit:散点大小, picTltle:图片名
+# return plt,fig
+def drawBar(Data, culsterResult, w=5, h=5, solit=10, picTltle='title'):
+    y = []
+    index =  np.arange(culsterResult['CulsterCount'])
+    
+    maxCount = culsterResult['CulsterAndCount'][0]
+    minCount = culsterResult['CulsterAndCount'][0]
+    for i in range(culsterResult['CulsterCount']):
+        y.append(culsterResult['CulsterAndCount'][i])
+        maxCount = max(maxCount, culsterResult['CulsterAndCount'][i])
+        minCount = min(minCount, culsterResult['CulsterAndCount'][i])
+        
+    plt.figure()        
+    fig = plt.gcf() 
+    fig.set_size_inches(w,  h)
+    
+    plt.bar(left=0,bottom=index , width=y, color='#4093c6',height=0.5, orientation='horizontal')
+    
+    plt.title('%s\n %d culsters, max is %d, min is %d' \
+          % (picTltle, culsterResult['CulsterCount'], maxCount, minCount))
+    
+    plt.show()
+    plt.close(0)
+    
+    return plt,fig
+
+# 用距离最远的两点为直径，做圆
+def calArea(Data, culsterResult, fileName='none'):
+    outFile = open(fileName+"_distance.txt", 'w', encoding='UTF-8')
+    outFile.write('聚类id\t最大距离m\n')
+    for k in range(culsterResult['CulsterCount']):
+        maxdistance = 0
+        a = Data[Data['clusterId'] == k]
+        for i in a.index:
+            for j in a.index:
+                pointA = (a.loc[i].values[1], a.loc[i].values[0])
+                pointB = (a.loc[j].values[1], a.loc[j].values[0])
+                maxdistance = max(maxdistance, vincenty(pointA, pointB).meters)
+        outFile.write(('%d\t%f\n') % (k, maxdistance))
+        print(('%d,%fm') % (k, maxdistance))
+    outFile.close()
 
 
 def main():
     baseDir = 'yfcc100m_dataset/'
-    geoFile = baseDir + 'flick-geo-abortchina-china'
-    addressFile = baseDir + 'flick-geo-abortchina-china-address'
+    
+    # 读取数据集
+    dataSets = pd.read_csv(baseDir + 'info_0_3.csv', index_col=0)
     
     provinces = ['辽宁省', '陕西省', '浙江省', '重庆市', '黑龙江省',         \
                  '安徽省', '山西省', '山东省', '上海市', '新疆维吾尔自治区', \
@@ -143,22 +136,29 @@ def main():
                     'GZ',  'JS',    'QH',  'HK']
     
     for provincesIndex in range(len(provinces)):
-        proGeo = selectData(geoFile, addressFile, province=provinces[provincesIndex])
-        
-        culsters, culsterResult = my_dbscan(proGeo, 0.001, 8)
+    
+        culsters, culsterResult = my_dbscan(dataSets, provinces[provincesIndex], 0.0001, 15)
         
         print('总数据 %d 条, 有效聚类 %d 条, 噪音点 %d 条, 有 %d 个类' \
               % (culsterResult['DataCount'], culsterResult['DataCount'] - culsterResult['NoisyCount'],\
                 culsterResult['NoisyCount'], culsterResult['CulsterCount']))
         
-        plt, fig = drawScatter(culsters[culsters.clusterId != -1], culsterResult, 5, 5, 10, provinces_py[provincesIndex])
-        #plt.show()
+        # 无噪音点散点图
+        pltS, figS = drawScatter(culsters[culsters.clusterId != -1], culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+        # 有噪音点散点图
+        pltSN, figSN = drawScatter(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+        # 聚类和聚类数量条形图,无噪音点
+        pltB, figB = drawBar(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+        
+        # 计算每个聚类的实际面积
+        #calArea(culsters, culsterResult, baseDir + 'culsters/' + provinces_py[provincesIndex])
         
         # 将聚类结果写入到文件中
         culsters.to_csv(baseDir + 'culsters/' + provinces_py[provincesIndex] + '.csv', encoding='utf-8', index=True)
         
         # 将聚类结果写入到图片中
-        fig.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '.png',  dpi=100)
-        #test_dbscan()
+        figS.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_scatter.png',  dpi=100)
+        figSN.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_scatter_noisy.png',  dpi=100)
+        figB.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_bar.png',  dpi=100)
     
 main()

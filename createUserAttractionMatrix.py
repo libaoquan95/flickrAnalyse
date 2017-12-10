@@ -107,6 +107,8 @@ def main():
     baseDir = 'yfcc100m_dataset/'
     
     geoFile = baseDir + 'flick-geo-abortchina-china'
+    addressFile = baseDir + 'flick-geo-abortchina-china-address'
+    
     phontUserFile = baseDir + 'photo-user.csv'
     #createPhotoUserMatrix(geoFile, phontUserFile)
     

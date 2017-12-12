@@ -168,7 +168,7 @@ class ItemBasedCF(object):
         coverage = len(all_rec_attractions) / (1.0 * self.attractionCount)
         popularity = popular_sum / (1.0 * rec_count)
 
-        print ('precision=%.4f\trecall=%.4f\tcoverage=%.4f\tpopularity=%.4f' %
+        print ('准确率=%.4f\n召回率=%.4f\n覆盖率=%.4f\n流行度=%.4f' %
                (precision, recall, coverage, popularity), file=sys.stderr)
 
 
@@ -176,8 +176,6 @@ if __name__ == '__main__':
     
     baseDir = 'yfcc100m_dataset/'
     userAttractionFile = baseDir + 'user-attraction.csv' 
-    
-    #ratingfile = os.path.join('../dataset/ml-100k', 'u.data')
     
     itemcf = ItemBasedCF()
     itemcf.generateDataset(userAttractionFile)

@@ -1,6 +1,7 @@
 #-*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
+import sys
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn.cluster import DBSCAN
@@ -75,8 +76,8 @@ def drawBar(Data, culsterResult, w=5, h=5, solit=10, picTltle='title'):
     y = []
     index =  np.arange(culsterResult['CulsterCount'])
     
-    maxCount = culsterResult['CulsterAndCount'][0]
-    minCount = culsterResult['CulsterAndCount'][0]
+    maxCount = 0#culsterResult['CulsterAndCount'][0]
+    minCount = sys.maxsize#culsterResult['CulsterAndCount'][0]
     for i in range(culsterResult['CulsterCount']):
         y.append(culsterResult['CulsterAndCount'][i])
         maxCount = max(maxCount, culsterResult['CulsterAndCount'][i])
@@ -135,30 +136,31 @@ def main():
                     'GD',  'HeB',   'HaiN','Macro', 'XZ',  \
                     'GZ',  'JS',    'QH',  'HK']
     
-    for provincesIndex in range(len(provinces)):
+    #for provincesIndex in range(len(provinces)):
+    provincesIndex = 6
+    culsters, culsterResult = my_dbscan(dataSets, provinces[provincesIndex], 0.0001, 15)
     
-        culsters, culsterResult = my_dbscan(dataSets, provinces[provincesIndex], 0.0001, 15)
-        
-        print('总数据 %d 条, 有效聚类 %d 条, 噪音点 %d 条, 有 %d 个类' \
-              % (culsterResult['DataCount'], culsterResult['DataCount'] - culsterResult['NoisyCount'],\
-                culsterResult['NoisyCount'], culsterResult['CulsterCount']))
-        
-        # 无噪音点散点图
-        pltS, figS = drawScatter(culsters[culsters.clusterId != -1], culsterResult, 5, 5, 10, provinces_py[provincesIndex])
-        # 有噪音点散点图
-        pltSN, figSN = drawScatter(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
-        # 聚类和聚类数量条形图,无噪音点
-        pltB, figB = drawBar(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
-        
-        # 计算每个聚类的实际面积
-        #calArea(culsters, culsterResult, baseDir + 'culsters/' + provinces_py[provincesIndex])
-        
-        # 将聚类结果写入到文件中
-        culsters.to_csv(baseDir + 'culsters/' + provinces_py[provincesIndex] + '.csv', encoding='utf-8', index=True)
-        
-        # 将聚类结果写入到图片中
-        figS.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_scatter.png',  dpi=100)
-        figSN.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_scatter_noisy.png',  dpi=100)
-        figB.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_bar.png',  dpi=100)
+    print('总数据 %d 条, 有效聚类 %d 条, 噪音点 %d 条, 有 %d 个类' \
+          % (culsterResult['DataCount'], culsterResult['DataCount'] - culsterResult['NoisyCount'],\
+            culsterResult['NoisyCount'], culsterResult['CulsterCount']))
+    
+    # 无噪音点散点图
+    pltS, figS = drawScatter(culsters[culsters.clusterId != -1], culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+    # 有噪音点散点图
+    pltSN, figSN = drawScatter(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+    # 聚类和聚类数量条形图,无噪音点
+    pltB, figB = drawBar(culsters, culsterResult, 5, 5, 10, provinces_py[provincesIndex])
+    
+    # 计算每个聚类的实际面积
+    #calArea(culsters, culsterResult, baseDir + 'culsters/' + provinces_py[provincesIndex])
+    
+    # 将聚类结果写入到文件中
+    culsters.to_csv(baseDir + 'culsters/' + provinces_py[provincesIndex] + '.csv', encoding='utf-8', index=True)
+    
+    # 将聚类结果写入到图片中
+    figS.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_scatter.png',  dpi=100)
+    figSN.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_scatter_noisy.png',  dpi=100)
+    figB.savefig(baseDir + 'culsters/' + provinces_py[provincesIndex] + '_bar.png',  dpi=100)
+    
     
 main()
